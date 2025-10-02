@@ -1,0 +1,99 @@
+﻿@model List<WebApp.ViewModels.ProductVM>
+
+@{
+    ViewData["Title"] = "Products";
+    var name = ViewData["CurrentSearch"] as string;
+    var categoryId = ViewData["CurrentCategoryId"] as int?;
+    var categoryList = ViewData["CategoryList"] as SelectList;
+    var currentPage = (int)ViewData["CurrentPage"];
+    var totalPages = (int)ViewData["TotalPages"];
+}
+
+<h2>Products</h2>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-warning" role="alert">
+        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+        {
+            <div>@error.ErrorMessage</div>
+        }
+    </div>
+}
+
+<form method="get" asp-action="Index" class="row mb-3">
+    <div class="col-md-4">
+        <input name="name" value="@name" class="form-control" placeholder="Search by name" />
+    </div>
+    <div class="col-md-4">
+        <select name="categoryId" class="form-select">
+            <option value="">-- Filter by Category --</option>
+            @foreach (var item in categoryList)
+            {
+                <option value="@item.Value" selected="@(item.Value == categoryId?.ToString() ? "selected" : null)">
+                    @item.Text
+                </option>
+            }
+        </select>
+    </div>
+    <div class="col-md-4">
+        <button type="submit" class="btn btn-primary">Search</button>
+    </div>
+</form>
+
+<table class="table table-bordered table-hover">
+    <thead>
+        <tr>
+            <th>Image</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Category</th>
+            <th>View Product Details</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var product in Model)
+        {
+            <tr>
+                <td>
+                    @if (!string.IsNullOrEmpty(product.ImagePath))
+                    {
+                        <img src="@Url.Content(product.ImagePath)" alt="Product Image" style="height: 60px;" />
+                    }
+                    else
+                    {
+                        <span>No image</span>
+                    }
+                </td>
+                <td>@product.Name</td>
+                <td>@product.Description</td>
+                <td>@product.CategoryName</td>
+                <td>
+                    <a asp-action="ProductDetails" asp-route-id="@product.Id" class="btn btn-info btn-sm">Details</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<nav>
+    <ul class="pagination">
+        <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+            <a class="page-link" 
+                asp-action="Index" 
+                asp-route-search="@name" 
+                asp-route-categoryId="@categoryId" 
+                asp-route-page="@(currentPage - 1)">Previous</a>
+        </li>
+        <li class="page-item disabled">
+            <span class="page-link">Page @currentPage of @totalPages</span>
+        </li>
+        <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+            <a class="page-link" 
+                asp-action="Index" 
+                asp-route-search="@name" 
+                asp-route-categoryId="@categoryId" 
+                asp-route-page="@(currentPage + 1)">Next</a>
+        </li>
+    </ul>
+</nav>

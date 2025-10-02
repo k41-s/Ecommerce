@@ -1,0 +1,59 @@
+﻿@model WebApp.ViewModels.ProductVM
+
+@{
+    ViewData["Title"] = "Product Details";
+}
+
+<h2>@Model.Name</h2>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-warning" role="alert">
+        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+        {
+            <div>@error.ErrorMessage</div>
+        }
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(Model.ImagePath))
+{
+    <div class="mb-3">
+        <img src="@Url.Content(Model.ImagePath)" alt="Product Image" class="img-thumbnail" style="max-width: 300px;" />
+    </div>
+}
+
+<div class="card">
+    <div class="card-body">
+        <div class="mb-4">
+            <h5 class="card-title">Category</h5>
+            <p class="card-text">@Model.CategoryName</p>
+        </div>
+
+        <div class="mb-4">
+            <h5 class="card-title">Countries</h5>
+            <div class="card-text">
+                @foreach (var country in Model.CountryNames)
+                {
+                    <span class="badge bg-primary me-2 mb-1">@country</span>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-4">
+    <a asp-action="Index" class="btn btn-secondary me-2">Back to Products</a>
+
+    @if (!(ViewData["HasOrdered"] as bool? ?? false))
+    {
+        <a asp-action="PlaceOrder" asp-route-id="@Model.Id" class="btn btn-success">Place Order</a>
+    }
+    else
+    {
+        <h3 class="alert-heading">
+            You have already ordered this, are you sure you want to place another order?
+        </h3>
+        <a asp-action="PlaceOrder" asp-route-id="@Model.Id" class="btn btn-success">Place Order</a>
+    }
+</div>

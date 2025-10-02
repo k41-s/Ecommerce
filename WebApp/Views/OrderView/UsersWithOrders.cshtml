@@ -1,0 +1,61 @@
+﻿@model List<WebApp.ViewModels.UserWithOrdersVM>
+
+@{
+    ViewData["Title"] = "Users and Their Orders";
+}
+
+<h2>Users and Their Booked Orders</h2>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-warning" role="alert">
+        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+        {
+            <div>@error.ErrorMessage</div>
+        }
+    </div>
+}
+
+@foreach (var vm in Model)
+{
+    <!-- Only User can place order -->
+    @if(vm.Role == "User")
+    {
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <strong>@vm.Name @vm.Surname</strong> (<em>@vm.Email</em>)
+            </div>
+            <div class="card-body">
+                @if (!vm.Orders.Any())
+                {
+                    <p class="text-muted">No orders placed.</p>
+                }
+                else
+                {
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Payment Method</th>
+                                <th>Ordered At</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var c in vm.Orders)
+                            {
+                                <tr>
+                                    <td>@c.ProductName</td>
+                                    <td>@c.PaymentMethod</td>
+                                    <td>@c.OrderedAt.ToString("g")</td>
+                                    <td>@c.Notes</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+    }
+    
+}

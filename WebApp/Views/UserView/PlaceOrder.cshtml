@@ -1,0 +1,43 @@
+﻿@model WebApp.ViewModels.OrderVM
+
+@{
+    ViewData["Title"] = "Book Order";
+}
+
+<h2>Place an Order with @Model.ProductName</h2>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-warning" role="alert">
+        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+        {
+            <div>@error.ErrorMessage</div>
+        }
+    </div>
+}
+
+<form asp-action="PlaceOrder" method="post">
+    <input type="hidden" asp-for="ProductId" />
+    <input type="hidden" asp-for="UserId" />
+
+    <div class="form-group" style="padding: 2vh;">
+        <label asp-for="Notes" class="control-label"></label>
+        <textarea asp-for="Notes" class="form-control"></textarea>
+        <span asp-validation-for="Notes" class="text-danger"></span>
+    </div>
+
+    <div class="form-group" style="padding: 2vh;">
+        <label asp-for="PaymentMethod" class="control-label"></label>
+        <input asp-for="PaymentMethod" class="form-control">
+        <span asp-validation-for="PaymentMethod" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Submit Request</button>
+    <a asp-action="ProductDetails" asp-route-id="@Model.ProductId" class="btn btn-secondary">Cancel</a>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

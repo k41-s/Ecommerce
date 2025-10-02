@@ -1,0 +1,46 @@
+﻿@model List<WebApp.ViewModels.MyOrderVM>
+
+@{
+    ViewData["Title"] = "My Orders";
+}
+
+<h2 class="mb-4">My Booked Orders</h2>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-warning" role="alert">
+        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+        {
+            <div>@error.ErrorMessage</div>
+        }
+    </div>
+}
+
+@if (!Model.Any())
+{
+    <p>You haven't placed any orders yet.</p>
+}
+else
+{
+    <div class="row row-cols-1 row-cols-md-2 g-4">
+        @foreach (var order in Model)
+        {
+            <div class="col">
+                <div class="card h-100">
+                    @if (!string.IsNullOrEmpty(order.ProductImagePath))
+                    {
+                        <img src="@order.ProductImagePath" class="card-img-top" style="max-height: 200px; object-fit: cover;" alt="Product Image" />
+                    }
+                    <div class="card-body">
+                        <h5 class="card-title">@order.ProductName</h5>
+                        <p class="card-text"><strong>Ordered:</strong> @order.OrderedAt.ToString("f")</p>
+                        @if (!string.IsNullOrWhiteSpace(order.Notes))
+                        {
+                            <p class="card-text"><strong>Notes:</strong> @order.Notes</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

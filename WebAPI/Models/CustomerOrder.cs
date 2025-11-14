@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace WebAPI.Models;
 
-public partial class Order
+public partial class CustomerOrder
 {
     public int Id { get; set; }
 

@@ -17,7 +17,7 @@ public partial class Product
 
     public virtual Category Category { get; set; } = null!;
 
-    public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
+    public virtual ICollection<CustomerOrder> CustomerOrders { get; set; } = new List<CustomerOrder>();
 
     public virtual ICollection<Country> Countries { get; set; } = new List<Country>();
 }

@@ -19,9 +19,9 @@ public partial class EcommerceContext : DbContext
 
     public virtual DbSet<Country> Countries { get; set; }
 
-    public virtual DbSet<Log> Logs { get; set; }
+    public virtual DbSet<CustomerOrder> CustomerOrders { get; set; }
 
-    public virtual DbSet<Order> Orders { get; set; }
+    public virtual DbSet<Log> Logs { get; set; }
 
     public virtual DbSet<Product> Products { get; set; }
 
@@ -50,21 +50,11 @@ public partial class EcommerceContext : DbContext
             entity.Property(e => e.Name).HasMaxLength(100);
         });
 
-        modelBuilder.Entity<Log>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__Log__3214EC072B4A58FF");
-
-            entity.ToTable("Log");
-
-            entity.Property(e => e.Level).HasMaxLength(50);
-            entity.Property(e => e.Timestamp).HasDefaultValueSql("(getutcdate())");
-        });
-
-        modelBuilder.Entity<Order>(entity =>
+        modelBuilder.Entity<CustomerOrder>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Order__3214EC07B9B6AD9C");
 
-            entity.ToTable("Order");
+            entity.ToTable("CustomerOrder");
 
             entity.Property(e => e.Notes).HasMaxLength(1000);
             entity.Property(e => e.OrderedAt)
@@ -74,15 +64,25 @@ public partial class EcommerceContext : DbContext
                 .HasMaxLength(50)
                 .HasDefaultValue("CreditCard");
 
-            entity.HasOne(d => d.Product).WithMany(p => p.Orders)
+            entity.HasOne(d => d.Product).WithMany(p => p.CustomerOrders)
                 .HasForeignKey(d => d.ProductId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Order__ProductId__35BCFE0A");
 
-            entity.HasOne(d => d.User).WithMany(p => p.Orders)
+            entity.HasOne(d => d.User).WithMany(p => p.CustomerOrders)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Order__UserId__36B12243");
+        });
+
+        modelBuilder.Entity<Log>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Log__3214EC072B4A58FF");
+
+            entity.ToTable("Log");
+
+            entity.Property(e => e.Level).HasMaxLength(50);
+            entity.Property(e => e.Timestamp).HasDefaultValueSql("(getutcdate())");
         });
 
         modelBuilder.Entity<Product>(entity =>
@@ -121,8 +121,6 @@ public partial class EcommerceContext : DbContext
         modelBuilder.Entity<User>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__User__3214EC078E988708");
-
-            entity.ToTable("User");
 
             entity.HasIndex(e => e.Username, "UQ__User__536C85E4F3313B96").IsUnique();
 

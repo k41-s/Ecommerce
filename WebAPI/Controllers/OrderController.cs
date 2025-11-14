@@ -35,12 +35,12 @@ namespace WebAPI.Controllers
                 if (product == null)
                     return NotFound("Product not found");
 
-                var order = _mapper.Map<Order>(dto);
+                var order = _mapper.Map<CustomerOrder>(dto);
 
-                _context.Orders.Add(order);
+                _context.CustomerOrders.Add(order);
                 await _context.SaveChangesAsync();
 
-                return Ok("Order requested.");
+                return Ok("CustomerOrder requested.");
             }
             catch (Exception)
             {
@@ -53,7 +53,7 @@ namespace WebAPI.Controllers
         [Authorize(Roles = "User")]
         public async Task<ActionResult<IEnumerable<OrderDTO>>> GetUserOrder(int userId)
         {
-            var Order = await _context.Orders
+            var CustomerOrder = await _context.CustomerOrders
                 .Include(c => c.Product)
                 .Include(c => c.User)
                 .Where(c => c.UserId == userId)
@@ -71,7 +71,7 @@ namespace WebAPI.Controllers
                 })
                 .ToListAsync();
 
-            return Ok(Order);
+            return Ok(CustomerOrder);
         }
 
         // GET: api/order/admin
@@ -79,7 +79,7 @@ namespace WebAPI.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult<IEnumerable<OrderDTO>>> GetAllOrder()
         {
-            var Order = await _context.Orders
+            var CustomerOrder = await _context.CustomerOrders
                 .Include(c => c.Product)
                 .Include(c => c.User)
                 .OrderByDescending(c => c.OrderedAt)
@@ -96,7 +96,7 @@ namespace WebAPI.Controllers
                 })
                 .ToListAsync();
 
-            return Ok(Order);
+            return Ok(CustomerOrder);
         }
     }
 }

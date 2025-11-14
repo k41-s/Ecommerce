@@ -7,6 +7,6 @@
         public string? Surname { get; set; }
         public string? Role { get; set; }
 
-        public List<OrderDTO> Orders { get; set; } = new();
+        public List<OrderDTO> CustomerOrders { get; set; } = new();
     }
 }

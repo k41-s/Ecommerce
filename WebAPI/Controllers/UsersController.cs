@@ -74,7 +74,7 @@ namespace WebAPI.Controllers
         public async Task<ActionResult<IEnumerable<UserWithOrdersDTO>>> GetUsersWithOrders()
         {
             var users = await _context.Users
-                .Include(u => u.Orders)
+                .Include(u => u.CustomerOrders)
                     .ThenInclude(c => c.Product)
                 .ToListAsync();
 

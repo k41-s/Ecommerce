@@ -33,12 +33,12 @@ namespace WebAPI.Profiles
                 .ForMember(dest => dest.PasswordHash, opt => opt.Ignore()) // Hash password manually in service/controller
                 .ForMember(dest => dest.Role, opt => opt.MapFrom(src => "User")); // Assign default role
 
-            // Order mappings
-            CreateMap<Order, OrderDTO>()
+            // CustomerOrder mappings
+            CreateMap<CustomerOrder, OrderDTO>()
                 .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name))
                 .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.Name + " " + src.User.Surname));
 
-            CreateMap<OrderDTO, Order>()
+            CreateMap<OrderDTO, CustomerOrder>()
                 .ForMember(dest => dest.Product, opt => opt.Ignore())
                 .ForMember(dest => dest.User, opt => opt.Ignore());
 

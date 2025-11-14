@@ -11,7 +11,7 @@ namespace WebApp.Profiles
             // Country
             CreateMap<CountryVM, CountryDTO>().ReverseMap();
 
-            // Order
+            // CustomerOrder
             CreateMap<OrderVM, OrderDTO>().ReverseMap();
 
             // Login (usually one-way, no reverse mapping needed)

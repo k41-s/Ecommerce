@@ -1,10 +1,10 @@
 ﻿@model List<WebApp.ViewModels.UserWithOrdersVM>
 
 @{
-    ViewData["Title"] = "Users and Their Orders";
+    ViewData["Title"] = "Users and Their CustomerOrders";
 }
 
-<h2>Users and Their Booked Orders</h2>
+<h2>Users and Their Booked CustomerOrders</h2>
 
 @if (!ViewData.ModelState.IsValid)
 {
@@ -26,7 +26,7 @@
                 <strong>@vm.Name @vm.Surname</strong> (<em>@vm.Email</em>)
             </div>
             <div class="card-body">
-                @if (!vm.Orders.Any())
+                @if (!vm.CustomerOrders.Any())
                 {
                     <p class="text-muted">No orders placed.</p>
                 }
@@ -42,7 +42,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var c in vm.Orders)
+                            @foreach (var c in vm.CustomerOrders)
                             {
                                 <tr>
                                     <td>@c.ProductName</td>

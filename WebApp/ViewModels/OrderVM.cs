@@ -17,7 +17,7 @@ namespace WebApp.ViewModels
         public string PaymentMethod { get; set; } = null!;
 
         [Required(ErrorMessage = "Please enter a note.")]
-        [Display(Name = "Order Notes")]
+        [Display(Name = "CustomerOrder Notes")]
         public string? Notes { get; set; }
         
     }

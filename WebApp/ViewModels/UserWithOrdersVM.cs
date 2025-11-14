@@ -8,7 +8,7 @@
         public string? Surname { get; set; }
         public string? Role { get; set; }
 
-        public List<OrderInfoViewModel> Orders { get; set; } = new();
+        public List<OrderInfoViewModel> CustomerOrders { get; set; } = new();
     }
 
     public class OrderInfoViewModel

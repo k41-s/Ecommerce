@@ -25,6 +25,8 @@ public partial class EcommerceContext : DbContext
 
     public virtual DbSet<Product> Products { get; set; }
 
+    public virtual DbSet<ProductImage> ProductImages { get; set; }
+
     public virtual DbSet<User> Users { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -34,7 +36,7 @@ public partial class EcommerceContext : DbContext
     {
         modelBuilder.Entity<Category>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Category__3214EC070944C042");
+            entity.HasKey(e => e.Id).HasName("PK__Category__3214EC0741D991F1");
 
             entity.ToTable("Category");
 
@@ -43,7 +45,7 @@ public partial class EcommerceContext : DbContext
 
         modelBuilder.Entity<Country>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Country__3214EC071A92C7C9");
+            entity.HasKey(e => e.Id).HasName("PK__Country__3214EC07A4B0D164");
 
             entity.ToTable("Country");
 
@@ -52,7 +54,7 @@ public partial class EcommerceContext : DbContext
 
         modelBuilder.Entity<CustomerOrder>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Order__3214EC07B9B6AD9C");
+            entity.HasKey(e => e.Id).HasName("PK__Customer__3214EC070AB636BC");
 
             entity.ToTable("CustomerOrder");
 
@@ -67,17 +69,17 @@ public partial class EcommerceContext : DbContext
             entity.HasOne(d => d.Product).WithMany(p => p.CustomerOrders)
                 .HasForeignKey(d => d.ProductId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Order__ProductId__35BCFE0A");
+                .HasConstraintName("FK__CustomerO__Produ__35BCFE0A");
 
             entity.HasOne(d => d.User).WithMany(p => p.CustomerOrders)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Order__UserId__36B12243");
+                .HasConstraintName("FK__CustomerO__UserI__36B12243");
         });
 
         modelBuilder.Entity<Log>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Log__3214EC072B4A58FF");
+            entity.HasKey(e => e.Id).HasName("PK__Log__3214EC071E5D4265");
 
             entity.ToTable("Log");
 
@@ -87,7 +89,7 @@ public partial class EcommerceContext : DbContext
 
         modelBuilder.Entity<Product>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Product__3214EC0713D0D2B9");
+            entity.HasKey(e => e.Id).HasName("PK__Product__3214EC07936F1719");
 
             entity.ToTable("Product");
 
@@ -113,18 +115,30 @@ public partial class EcommerceContext : DbContext
                         .HasConstraintName("FK__ProductCo__Produ__300424B4"),
                     j =>
                     {
-                        j.HasKey("ProductId", "CountryId").HasName("PK__ProductC__5501D0C4178639FA");
+                        j.HasKey("ProductId", "CountryId").HasName("PK__ProductC__5501D0C4C1BB7F7E");
                         j.ToTable("ProductCountry");
                     });
         });
 
+        modelBuilder.Entity<ProductImage>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__ProductI__3214EC07210CE2B4");
+
+            entity.Property(e => e.MimeType).HasMaxLength(100);
+
+            entity.HasOne(d => d.Product).WithMany(p => p.ProductImages)
+                .HasForeignKey(d => d.ProductId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__ProductIm__Produ__398D8EEE");
+        });
+
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__User__3214EC078E988708");
+            entity.HasKey(e => e.Id).HasName("PK__Users__3214EC0712122521");
 
-            entity.HasIndex(e => e.Username, "UQ__User__536C85E4F3313B96").IsUnique();
+            entity.HasIndex(e => e.Username, "UQ__Users__536C85E4D7275949").IsUnique();
 
-            entity.HasIndex(e => e.Email, "UQ__User__A9D105348F8782CB").IsUnique();
+            entity.HasIndex(e => e.Email, "UQ__Users__A9D10534BF16783E").IsUnique();
 
             entity.Property(e => e.Email).HasMaxLength(255);
             entity.Property(e => e.Name).HasMaxLength(255);

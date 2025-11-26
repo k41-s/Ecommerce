@@ -94,7 +94,6 @@ public partial class EcommerceContext : DbContext
             entity.ToTable("Product");
 
             entity.Property(e => e.Description).HasMaxLength(100);
-            entity.Property(e => e.ImagePath).HasMaxLength(100);
             entity.Property(e => e.Name).HasMaxLength(100);
 
             entity.HasOne(d => d.Category).WithMany(p => p.Products)

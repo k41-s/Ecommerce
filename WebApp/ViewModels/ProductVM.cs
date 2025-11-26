@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Ecommerce.core.DTOs;
+using System.ComponentModel.DataAnnotations;
 
 namespace WebApp.ViewModels
 {
@@ -21,14 +22,16 @@ namespace WebApp.ViewModels
         [Display(Name = "Category")]
         public string CategoryName { get; set; } = string.Empty;
 
-        [Display(Name = "Image Path")]
-        public string? ImagePath { get; set; } = string.Empty;
-
         [Required(ErrorMessage = "Countries are required")]
         [Display(Name = "Selected Countries")]
         public List<int> CountryIds { get; set; } = new();
 
         [Display(Name = "Countries Available")]
         public List<string> CountryNames { get; set; } = new();
+
+        public List<int> ImageIds { get; set; } = new();
+
+        [Display(Name = "Upload Images")]
+        public List<ProductImageDTO>? UploadedImages { get; set; }
     }
 }

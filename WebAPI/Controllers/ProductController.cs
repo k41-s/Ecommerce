@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using Ecommerce.core.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -37,12 +38,12 @@ namespace WebAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProductDTO>>> GetProducts()
         {
-            List<Product>? products = await _context.Products
-                .Include(p => p.Category)
-                .Include(p => p.Countries)
+            // ProjectTo() ensures EF Core SELECTS only the Image IDs and explicitly 
+            // IGNORES the heavy 'Data' (byte[]) column from the database.
+            var productDTOs = await _context.Products
+                .AsNoTracking()
+                .ProjectTo<ProductDTO>(_mapper.ConfigurationProvider)
                 .ToListAsync();
-
-            var productDTOs = _mapper.Map<List<ProductDTO>>(products);
 
             return Ok(productDTOs);
         }
@@ -53,20 +54,19 @@ namespace WebAPI.Controllers
         {
             try
             {
-                Product? product = await _context.Products
-                        .Include(p => p.Category)
-                        .Include(p => p.Countries)
-                        .FirstOrDefaultAsync(p => p.Id == id);
+                var productDTO = await _context.Products
+                    .AsNoTracking()
+                    .Where(p => p.Id == id)
+                    .ProjectTo<ProductDTO>(_mapper.ConfigurationProvider)
+                    .FirstOrDefaultAsync();
 
-                if(product == null)
+                if (productDTO == null)
                 {
                     await AddLogAsync("Warning", $"Product with id={id} not found");
                     return NotFound();
                 }
 
                 await AddLogAsync("Information", $"Product with id={id} retrieved");
-
-                var productDTO = _mapper.Map<ProductDTO>(product);
 
                 return Ok(productDTO);
             }
@@ -97,6 +97,8 @@ namespace WebAPI.Controllers
                 product.Category = category;
                 product.Countries = countries;
 
+                // upload images after product creation using returned product id
+
                 _context.Products.Add(product);
                 await _context.SaveChangesAsync();
 
@@ -120,12 +122,13 @@ namespace WebAPI.Controllers
             if (id <= 0)
                 return BadRequest("Invalid product id");
             
+            // Note: We do NOT Include ProductImages here becuase theyre updated in their own controller
             Product? product = await _context.Products
                 .Include(p => p.Countries)
                 .Include(p=> p.Category)
                 .FirstOrDefaultAsync(p=> p.Id == id);
 
-            if(product == null)
+            if (product == null)
             {
                 await AddLogAsync("Warning", $"Product: id={id} not found during update");
                 return NotFound();
@@ -137,16 +140,21 @@ namespace WebAPI.Controllers
                 return BadRequest();
             }
 
-            Category? category = await _context.Categories.FindAsync(dto.CategoryId);
+            _mapper.Map(dto, product);
 
-            if (category == null)
-                return BadRequest("Invalid category Id");
+            if (product.CategoryId != dto.CategoryId)
+            {
+                var category = await _context.Categories.FindAsync(dto.CategoryId);
+                if (category == null) return BadRequest("Invalid category Id");
+                product.Category = category;
+            }
+
+            product.Countries.Clear();
 
             List<Country> countries = await _context.Countries
                 .Where(o => dto.CountryIds.Contains(o.Id))
                 .ToListAsync();
-
-            product = _mapper.Map<Product>(dto);
+            product.Countries = countries;
 
             _context.Entry(product).State = EntityState.Modified;
 
@@ -180,7 +188,6 @@ namespace WebAPI.Controllers
         public async Task<IActionResult> DeleteProduct(int id)
         {
             var product = await _context.Products
-                .Include(p => p.Category)
                 .Include(p => p.Countries)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
@@ -194,7 +201,6 @@ namespace WebAPI.Controllers
             {
                 // remove foreign keys first
                 product.Countries.Clear();
-                await _context.SaveChangesAsync();
 
                 _context.Products.Remove(product);
                 await _context.SaveChangesAsync();
@@ -226,8 +232,7 @@ namespace WebAPI.Controllers
                     return NotFound("Product dataset not found.");
 
                 var productsQuery = _context.Products
-                    .Include(p => p.Countries)
-                    .Include(p => p.Category)
+                    .AsNoTracking()
                     .AsQueryable();
 
                 if (!string.IsNullOrWhiteSpace(name))
@@ -244,19 +249,17 @@ namespace WebAPI.Controllers
 
                 var total = await productsQuery.CountAsync();
 
-                var products = await productsQuery
+                var productDTOs = await productsQuery
                     .Skip((page - 1) * pageSize)
                     .Take(pageSize)
+                    .ProjectTo<ProductDTO>(_mapper.ConfigurationProvider)
                     .ToListAsync();
-
 
                 // Log successful search
                 await AddLogAsync("Information", $"Product search performed with name filter '{name}', page {page}, count {pageSize}.");
 
                 // Return paged result, optionally include total count in response headers or body
                 Response.Headers.Append("X-Total-Count", total.ToString());
-
-                var productDTOs = _mapper.Map<List<ProductDTO>>(products);
 
                 return Ok(productDTOs);
             }

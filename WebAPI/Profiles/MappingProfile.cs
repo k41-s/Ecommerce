@@ -10,15 +10,25 @@ namespace WebAPI.Profiles
         {
             CreateMap<Country, CountryDTO>().ReverseMap();
 
-            // Category mappings
             CreateMap<Category, CategoryDTO>().ReverseMap();
 
             CreateMap<Product, ProductDTO>()
                 .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.Name))
-                .ForMember(dest => dest.CountryNames, opt => opt.MapFrom(src => src.Countries.Select(a => a.Name)));
+                .ForMember(dest => dest.CountryNames, opt => opt.MapFrom(src => src.Countries.Select(a => a.Name)))
+                .ForMember(dest => dest.ImageIds, opt => opt.MapFrom(src => src.ProductImages.Select(a => a.Id)));
 
             CreateMap<ProductDTO, Product>()
-                .ForMember(dest => dest.Countries, opt => opt.Ignore());
+                .ForMember(dest => dest.Countries, opt => opt.Ignore())
+                .ForMember(dest => dest.ProductImages, opt => opt.Ignore());
+
+            CreateMap<ProductImage, ProductImageDTO>()
+                .ForMember(dest => dest.Url, opt => opt.Ignore());
+            // URL will be set in the controller
+
+            CreateMap<ProductImageDTO, ProductImage>()
+                .ForMember(dest => dest.Product, opt => opt.Ignore())
+                .ForMember(dest => dest.ProductId, opt => opt.Ignore())
+                .ForMember(dest => dest.Data, opt => opt.Ignore());
 
             CreateMap<User, AuthenticatedUserDTO>()
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))

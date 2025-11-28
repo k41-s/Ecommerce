@@ -18,6 +18,23 @@
 
 <div>
     <dl class="row">
+        <dt class="col-sm-2">Image</dt>
+        <dd class="col-sm-10">
+
+            @if (Model.ImageIds != null && Model.ImageIds.Any())
+            {
+                <div class="mb-4">
+                    <img src="@Url.Action("GetImage", "Image", new { id = Model.ImageIds.First() })"
+                         class="img-fluid" alt="@Model.Name" />
+                </div>
+            }
+            else
+            {
+                <span>No Image</span>
+            }
+
+        </dd>
+
         <dt class="col-sm-2">Name</dt>
         <dd class="col-sm-10">@Model.Name</dd>
 

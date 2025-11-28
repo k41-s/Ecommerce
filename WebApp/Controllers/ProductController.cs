@@ -1,6 +1,4 @@
 ﻿using System.Net.Http.Headers;
-using System.Net.Http;
-using System.Net.Http.Json;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,14 +20,8 @@ namespace WebApp.Controllers
             _mapper = mapper;
         }
 
-        // GET: Product
-        public async Task<IActionResult> Index(
-            string? name = null, 
-            int? categoryId = null, 
-            int page = 1)
+        private HttpClient GetAuthenticatedClient()
         {
-            int pageSize = 10;
-
             var client = _clientFactory.CreateClient("ApiClient");
 
             var token = User.Claims.FirstOrDefault(c => c.Type == "AccessToken")?.Value;
@@ -39,16 +31,45 @@ namespace WebApp.Controllers
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             }
 
-            var queryParams = new List<string>();
+            return client;
+        }
+
+        private async Task<bool> UploadImageToApi(int productId, IFormFile file)
+        {
+            var client = GetAuthenticatedClient();
+
+            // Prepare Multipart Form Data
+            using var content = new MultipartFormDataContent();
+            using var fileStream = file.OpenReadStream();
+
+            // "file" must match the parameter name in ProductImagesController.UploadImage
+            content.Add(new StreamContent(fileStream), "file", file.FileName);
+
+            var response = await client.PostAsync($"/api/productimages/upload/{productId}", content);
+            return response.IsSuccessStatusCode;
+        }
+
+        // GET: Product
+        public async Task<IActionResult> Index(
+            string? name = null, 
+            int? categoryId = null, 
+            int page = 1)
+        {
+            int pageSize = 10;
+
+            var client = GetAuthenticatedClient();
+
+            var queryParams = new List<string>
+            {
+                $"page={page}",
+                $"pageSize={pageSize}"
+            };
 
             if (!string.IsNullOrEmpty(name))
                 queryParams.Add($"name={Uri.EscapeDataString(name)}");
 
             if (categoryId.HasValue && categoryId > 0)
                 queryParams.Add($"categoryId={categoryId}");
-
-            queryParams.Add($"page={page}");
-            queryParams.Add($"pageSize={pageSize}");
 
             string queryString = string.Join('&', queryParams);
 
@@ -91,14 +112,7 @@ namespace WebApp.Controllers
         // GET: Product/Details/5
         public async Task<IActionResult> Details(int id)
         {
-            var client = _clientFactory.CreateClient("ApiClient");
-
-            var token = User.Claims.FirstOrDefault(c => c.Type == "AccessToken")?.Value;
-
-            if (!string.IsNullOrEmpty(token))
-            {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            }
+            var client = GetAuthenticatedClient();
 
             var response = await client.GetAsync($"/api/product/{id}");
 
@@ -130,45 +144,25 @@ namespace WebApp.Controllers
                 return View(vm);
             }
 
-            var client = _clientFactory.CreateClient("ApiClient");
+            var client = GetAuthenticatedClient();
 
-            var token = User.Claims.FirstOrDefault(c => c.Type == "AccessToken")?.Value;
-
-            if (!string.IsNullOrEmpty(token))
-            {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            }
-
-            // Handle image upload here - upload to wwwroot/uploads and get relative URL
-            string? imagePath = null;
-            if (Request.Form.Files.Count > 0)
-            {
-                var imageFile = Request.Form.Files[0];
-                if (imageFile.Length > 0)
-                {
-                    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
-                    if (!Directory.Exists(uploadsFolder))
-                        Directory.CreateDirectory(uploadsFolder);
-
-                    var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
-                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                    using (var stream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await imageFile.CopyToAsync(stream);
-                    }
-
-                    imagePath = "/uploads/" + uniqueFileName;
-                }
-            }
-
-            // Map VM to DTO and add ImagePath
+            // Make product here with metadata only
             var productDto = _mapper.Map<ProductDTO>(vm);
-            productDto.ImagePath = imagePath;
 
             var response = await client.PostAsJsonAsync("/api/product", productDto);
             if (response.IsSuccessStatusCode)
             {
+                var createdProduct = await response.Content.ReadFromJsonAsync<ProductDTO>();
+
+                if (Request.Form.Files.Count > 0 && createdProduct != null)
+                {
+                    var file = Request.Form.Files[0];
+                    if (file.Length > 0)
+                    {
+                        await UploadImageToApi(createdProduct.Id, file);
+                    }
+                }
+
                 return RedirectToAction(nameof(Index));
             }
             else
@@ -182,15 +176,7 @@ namespace WebApp.Controllers
         // GET: Products/Edit/5
         public async Task<IActionResult> Edit(int id)
         {
-            var client = _clientFactory.CreateClient("ApiClient");
-
-            var token = User.Claims.FirstOrDefault(c => c.Type == "AccessToken")?.Value;
-
-            if (!string.IsNullOrEmpty(token))
-            {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            }
-
+            var client = GetAuthenticatedClient();
             var response = await client.GetAsync($"/api/product/{id}");
 
             if (!response.IsSuccessStatusCode)
@@ -218,45 +204,22 @@ namespace WebApp.Controllers
                 return View(vm);
             }
 
-            var client = _clientFactory.CreateClient("ApiClient");
-
-            var token = User.Claims.FirstOrDefault(c => c.Type == "AccessToken")?.Value;
-
-            if (!string.IsNullOrEmpty(token))
-            {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            }
-
-            // Handle image upload if provided
-            string? imagePath = null;
-            if (Request.Form.Files.Count > 0)
-            {
-                var imageFile = Request.Form.Files[0];
-                if (imageFile.Length > 0)
-                {
-                    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
-                    if (!Directory.Exists(uploadsFolder))
-                        Directory.CreateDirectory(uploadsFolder);
-
-                    var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
-                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                    using (var stream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await imageFile.CopyToAsync(stream);
-                    }
-
-                    imagePath = "/uploads/" + uniqueFileName;
-                }
-            }
+            var client = GetAuthenticatedClient();
 
             var productDto = _mapper.Map<ProductDTO>(vm);
-            productDto.ImagePath = imagePath;
 
             var response = await client.PutAsJsonAsync($"/api/product/{id}", productDto);
 
             if (response.IsSuccessStatusCode)
             {
+                if (Request.Form.Files.Count > 0)
+                {
+                    var file = Request.Form.Files[0];
+                    if (file.Length > 0)
+                    {
+                        await UploadImageToApi(id, file);
+                    }
+                }
                 return RedirectToAction(nameof(Index));
             }
             else
@@ -267,17 +230,27 @@ namespace WebApp.Controllers
             }
         }
 
+        // POST: Products/DeleteImage/5 (Called via AJAX or a small form in the Edit View)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteImage(int imageId, int productId)
+        {
+            var client = GetAuthenticatedClient();
+            var response = await client.DeleteAsync($"/api/productimages/{imageId}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                // Redirect back to the Edit page of the product
+                return RedirectToAction(nameof(Edit), new { id = productId });
+            }
+
+            return BadRequest("Could not delete image");
+        }
+
         // GET: Products/Delete/5
         public async Task<IActionResult> Delete(int id)
         {
-            var client = _clientFactory.CreateClient("ApiClient");
-
-            var token = User.Claims.FirstOrDefault(c => c.Type == "AccessToken")?.Value;
-
-            if (!string.IsNullOrEmpty(token))
-            {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            }
+            var client = GetAuthenticatedClient();
 
             var response = await client.GetAsync($"/api/product/{id}");
 
@@ -295,14 +268,7 @@ namespace WebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var client = _clientFactory.CreateClient("ApiClient");
-
-            var token = User.Claims.FirstOrDefault(c => c.Type == "AccessToken")?.Value;
-
-            if (!string.IsNullOrEmpty(token))
-            {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            }
+            var client = GetAuthenticatedClient();
 
             var response = await client.DeleteAsync($"/api/product/{id}");
 
@@ -310,45 +276,13 @@ namespace WebApp.Controllers
             {
                 return RedirectToAction(nameof(Index));
             }
-            else if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
-            {
-                ModelState.AddModelError("", "Cannot delete this Product due to a conflict");
-
-                var reloadResponse = await client.GetAsync($"/api/product/{id}");
-
-                if (!reloadResponse.IsSuccessStatusCode)
-                    return NotFound();
-
-                var dto = await reloadResponse.Content.ReadFromJsonAsync<ProductDTO>();
-                var vm = _mapper.Map<ProductVM>(dto);
-
-                return View("Delete", vm);
-            }
-            else
-            {
-                ModelState.AddModelError("", "Failed to delete Product via API.");
-
-                var reloadResponse = await client.GetAsync($"/api/product/{id}");
-                if (!reloadResponse.IsSuccessStatusCode)
-                    return NotFound();
-
-                var dto = await reloadResponse.Content.ReadFromJsonAsync<ProductDTO>();
-                var vm = _mapper.Map<ProductVM>(dto);
-
-                return View("Delete", vm);
-            }
+            ModelState.AddModelError("", "Failed to delete product via API.");
+            return RedirectToAction(nameof(Delete), new { id });
         }
 
         private async Task PopulateDropdownsAsync()
         {
-            var client = _clientFactory.CreateClient("ApiClient");
-
-            var token = User.Claims.FirstOrDefault(c => c.Type == "AccessToken")?.Value;
-
-            if (!string.IsNullOrEmpty(token))
-            {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            }
+            var client = GetAuthenticatedClient();
 
             var categoryResponse = await client.GetAsync("/api/category");
             var countriesResponse = await client.GetAsync("/api/countries");

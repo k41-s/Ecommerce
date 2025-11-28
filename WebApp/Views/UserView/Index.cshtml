@@ -56,13 +56,16 @@
         {
             <tr>
                 <td>
-                    @if (!string.IsNullOrEmpty(product.ImagePath))
+                    @if (product.ImageIds != null && product.ImageIds.Any())
                     {
-                        <img src="@Url.Content(product.ImagePath)" alt="Product Image" style="height: 60px;" />
+                        <div class="mb-4">
+                            <img src="@Url.Action("GetImage", "Image", new { id = product.ImageIds.First() })" 
+                                class="img-fluid" alt="@product.Name" />
+                        </div>
                     }
                     else
                     {
-                        <span>No image</span>
+                        <span>No Image</span>
                     }
                 </td>
                 <td>@product.Name</td>

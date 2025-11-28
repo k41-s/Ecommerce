@@ -18,6 +18,18 @@
 
 <h4>Are you sure you want to delete this product?</h4>
 
+@if (Model.ImageIds != null && Model.ImageIds.Any())
+{
+    <div class="mb-4">
+        <img src="@Url.Action("GetImage", "Image", new { id = Model.ImageIds.First() })" 
+            class="img-fluid" alt="@Model.Name" />
+    </div>
+}
+else
+{
+    <span>No Image</span>
+}
+
 <div>
     <h5>@Model.Name</h5>
     <p><strong>Category:</strong> @Model.CategoryName</p>

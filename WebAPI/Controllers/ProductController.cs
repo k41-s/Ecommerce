@@ -97,8 +97,6 @@ namespace WebAPI.Controllers
                 product.Category = category;
                 product.Countries = countries;
 
-                // upload images after product creation using returned product id
-
                 _context.Products.Add(product);
                 await _context.SaveChangesAsync();
 

@@ -16,11 +16,16 @@
     </div>
 }
 
-@if (!string.IsNullOrEmpty(Model.ImagePath))
+@if(Model.ImageIds != null && Model.ImageIds.Any())
 {
-    <div class="mb-3">
-        <img src="@Url.Content(Model.ImagePath)" alt="Product Image" class="img-thumbnail" style="max-width: 300px;" />
+    <div class="mb-4">
+        <img src="@Url.Action("GetImage", "Image", new { id = Model.ImageIds.First() })" 
+            class="img-fluid" alt="@Model.Name" />
     </div>
+}
+else
+{
+    <span>No Image</span>
 }
 
 <div class="card">

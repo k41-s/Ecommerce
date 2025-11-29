@@ -4,7 +4,7 @@ using WebAPI.Models;
 
 namespace WebAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/productimages")]
     [ApiController]
     public class ProductImageController : ControllerBase
     {
@@ -15,8 +15,7 @@ namespace WebAPI.Controllers
             _context = context;
         }
 
-        // GET: api/ProductImage/5
-        // This endpoint returns the actual image file to be displayed in an <img> tag
+        // GET: api/productimages/5
         [HttpGet("{id}")]
         public async Task<IActionResult> GetProductImage(int id)
         {
@@ -27,10 +26,16 @@ namespace WebAPI.Controllers
                 return NotFound();
             }
 
+            var contentType = productImage.MimeType;
+            if (string.IsNullOrWhiteSpace(contentType))
+            {
+                contentType = "image/png";
+            }
+
             return File(productImage.Data, productImage.MimeType);
         }
 
-        // POST: api/ProductImage/5 (where 5 is the ProductId)
+        // POST: api/productimages/5 (where 5 is the ProductId)
         [HttpPost("upload/{productId}")]
         public async Task<ActionResult<ProductImageDTO>> UploadImage(int productId, IFormFile file)
         {
@@ -71,7 +76,7 @@ namespace WebAPI.Controllers
             return CreatedAtAction(nameof(GetProductImage), new { id = productImage.Id }, dto);
         }
 
-        // DELETE: api/ProductImage/5
+        // DELETE: api/productimages/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteProductImage(int id)
         {

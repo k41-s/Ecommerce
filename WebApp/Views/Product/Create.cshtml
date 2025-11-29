@@ -43,8 +43,9 @@
     </div>
 
     <div class="form-group">
-        <label>Upload Image</label>
-        <input type="file" name="file" class="form-control" />
+        <label asp-for="NewImages"></label>
+        <input asp-for="NewImages" type="file" class="form-control" multiple />
+        <span asp-validation-for="NewImages" class="text-danger"></span>
     </div>
 
     <button type="submit" class="btn btn-primary">Create</button>

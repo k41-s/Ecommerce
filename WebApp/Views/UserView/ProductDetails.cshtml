@@ -16,12 +16,15 @@
     </div>
 }
 
-@if(Model.ImageIds != null && Model.ImageIds.Any())
+@if (Model.ImageIds != null)
 {
-    <div class="mb-4">
-        <img src="@Url.Action("GetImage", "Image", new { id = Model.ImageIds.First() })" 
-            class="img-fluid" alt="@Model.Name" />
-    </div>
+    foreach (var imgId in Model.ImageIds)
+    {
+        <img src="@Url.Action("GetImage", "ProductImage", new { id = imgId })"
+             alt="Product Image"
+             class="img-thumbnail"
+             style="max-width: 200px;" />
+    }
 }
 else
 {

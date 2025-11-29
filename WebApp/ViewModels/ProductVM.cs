@@ -32,6 +32,6 @@ namespace WebApp.ViewModels
         public List<int> ImageIds { get; set; } = new();
 
         [Display(Name = "Upload Images")]
-        public List<ProductImageDTO>? UploadedImages { get; set; }
+        public List<IFormFile>? NewImages { get; set; }
     }
 }

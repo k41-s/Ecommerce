@@ -50,12 +50,15 @@
         {
             <tr>
                 <td>
-                    @if (product.ImageIds != null && product.ImageIds.Any())
+                    @if (product.ImageIds != null)
                     {
-                        <div class="mb-4">
-                            <img src="@Url.Action("GetImage", "Image", new { id = product.ImageIds.First() })"
-                                 class="img-fluid" alt="@product.Name" />
-                        </div>
+                        foreach (var imgId in product.ImageIds)
+                        {
+                            <img src="@Url.Action("GetImage", "ProductImage", new { id = imgId })"
+                                 alt="Product Image"
+                                 class="img-thumbnail"
+                                 style="max-width: 200px;" />
+                        }
                     }
                     else
                     {

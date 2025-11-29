@@ -37,13 +37,13 @@ namespace WebApp.Controllers
         private async Task<bool> UploadImageToApi(int productId, IFormFile file)
         {
             var client = GetAuthenticatedClient();
-
-            // Prepare Multipart Form Data
             using var content = new MultipartFormDataContent();
             using var fileStream = file.OpenReadStream();
+            using var streamContent = new StreamContent(fileStream);
 
-            // "file" must match the parameter name in ProductImagesController.UploadImage
-            content.Add(new StreamContent(fileStream), "file", file.FileName);
+            streamContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
+
+            content.Add(streamContent, "file", file.FileName);
 
             var response = await client.PostAsync($"/api/productimages/upload/{productId}", content);
             return response.IsSuccessStatusCode;
@@ -154,12 +154,14 @@ namespace WebApp.Controllers
             {
                 var createdProduct = await response.Content.ReadFromJsonAsync<ProductDTO>();
 
-                if (Request.Form.Files.Count > 0 && createdProduct != null)
+                if (vm.NewImages != null && createdProduct != null)
                 {
-                    var file = Request.Form.Files[0];
-                    if (file.Length > 0)
+                    foreach (var file in vm.NewImages)
                     {
-                        await UploadImageToApi(createdProduct.Id, file);
+                        if (file.Length > 0)
+                        {
+                            await UploadImageToApi(createdProduct.Id, file);
+                        }
                     }
                 }
 
@@ -212,12 +214,14 @@ namespace WebApp.Controllers
 
             if (response.IsSuccessStatusCode)
             {
-                if (Request.Form.Files.Count > 0)
+                if (vm.NewImages != null)
                 {
-                    var file = Request.Form.Files[0];
-                    if (file.Length > 0)
+                    foreach (var file in vm.NewImages)
                     {
-                        await UploadImageToApi(id, file);
+                        if (file.Length > 0)
+                        {
+                            await UploadImageToApi(id, file);
+                        }
                     }
                 }
                 return RedirectToAction(nameof(Index));
@@ -228,23 +232,6 @@ namespace WebApp.Controllers
                 await PopulateDropdownsAsync();
                 return View(vm);
             }
-        }
-
-        // POST: Products/DeleteImage/5 (Called via AJAX or a small form in the Edit View)
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteImage(int imageId, int productId)
-        {
-            var client = GetAuthenticatedClient();
-            var response = await client.DeleteAsync($"/api/productimages/{imageId}");
-
-            if (response.IsSuccessStatusCode)
-            {
-                // Redirect back to the Edit page of the product
-                return RedirectToAction(nameof(Edit), new { id = productId });
-            }
-
-            return BadRequest("Could not delete image");
         }
 
         // GET: Products/Delete/5

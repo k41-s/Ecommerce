@@ -75,6 +75,7 @@ namespace WebApp.Controllers
 
             var dtoList = await response.Content.ReadFromJsonAsync<List<OrderDTO>>();
             var vms = _mapper.Map<List<MyOrderVM>>(dtoList);
+
             return View(vms);
         }
     }

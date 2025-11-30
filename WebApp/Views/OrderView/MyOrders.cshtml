@@ -4,7 +4,7 @@
     ViewData["Title"] = "My CustomerOrders";
 }
 
-<h2 class="mb-4">My Booked CustomerOrders</h2>
+<h2 class="mb-4">My Orders</h2>
 
 @if (!ViewData.ModelState.IsValid)
 {
@@ -25,18 +25,52 @@ else
     <div class="row row-cols-1 row-cols-md-2 g-4">
         @foreach (var order in Model)
         {
+            // 1. Determine styles based on state
+            var cardClass = order.IsProductDeleted ? "border-secondary bg-light text-muted" : "border-primary";
+            var imgFilter = order.IsProductDeleted ? "filter: grayscale(100%); opacity: 0.6;" : "";
+
             <div class="col">
-                <div class="card h-100">
-                    @if (!string.IsNullOrEmpty(order.ProductImagePath))
-                    {
-                        <img src="@order.ProductImagePath" class="card-img-top" style="max-height: 200px; object-fit: cover;" alt="Product Image" />
-                    }
+                <div class="card h-100 shadow-sm @cardClass">
+
+                    <div style="position: relative;">
+                        <img src="@Url.Action("GetImage", "ProductImage" , new{ id = order.MainImageId} )"
+                                class="card-img-top"
+                                style="max-height: 200px; object-fit: cover; @imgFilter"
+                                alt="Product Image" />
+                        
+                        @if (order.IsProductDeleted)
+                        {
+                            <div style="position: absolute; top: 10px; right: 10px;">
+                                <span class="badge bg-danger">Discontinued</span>
+                            </div>
+                        }
+                    </div>
+
                     <div class="card-body">
-                        <h5 class="card-title">@order.ProductName</h5>
+                        <h5 class="card-title">
+                            @order.ProductName
+                            @if (order.IsProductDeleted)
+                            {
+                                <small class="text-danger fs-6">(Unavailable)</small>
+                            }
+                        </h5>
+
                         <p class="card-text"><strong>Ordered:</strong> @order.OrderedAt.ToString("f")</p>
+
                         @if (!string.IsNullOrWhiteSpace(order.Notes))
                         {
                             <p class="card-text"><strong>Notes:</strong> @order.Notes</p>
+                        }
+                    </div>
+
+                    <div class="card-footer bg-transparent border-top-0">
+                        @if (!order.IsProductDeleted)
+                        {
+                            <a href="@Url.Action("ProductDetails", "UserView", new { id = order.ProductId })" class="btn btn-outline-primary w-100">View Product</a>
+                        }
+                        else
+                        {
+                            <button disabled class="btn btn-secondary w-100">Product Removed</button>
                         }
                     </div>
                 </div>

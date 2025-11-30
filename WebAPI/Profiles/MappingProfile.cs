@@ -45,11 +45,20 @@ namespace WebAPI.Profiles
 
             // CustomerOrder mappings
             CreateMap<CustomerOrder, OrderDTO>()
+                .ForMember(dest => dest.IsProductDeleted, opt => opt.MapFrom(src => src.Product.IsDeleted))
                 .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name))
-                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.Name + " " + src.User.Surname));
+                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.Name + " " + src.User.Surname))
+                .ForMember(
+                    dest => dest.MainImageId,
+                    opt => opt.MapFrom(src =>
+                        src.Product.ProductImages != null && src.Product.ProductImages.Any()
+                            ? src.Product.ProductImages.First().Id
+                            : (int?)null
+                ));
 
             CreateMap<OrderDTO, CustomerOrder>()
                 .ForMember(dest => dest.Product, opt => opt.Ignore())
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
                 .ForMember(dest => dest.User, opt => opt.Ignore());
 
             CreateMap<UserWithOrdersDTO, User>().ReverseMap();

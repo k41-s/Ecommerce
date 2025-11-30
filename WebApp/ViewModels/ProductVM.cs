@@ -29,6 +29,8 @@ namespace WebApp.ViewModels
         [Display(Name = "Countries Available")]
         public List<string> CountryNames { get; set; } = new();
 
+        public bool IsDeleted { get; set; }
+
         public List<int> ImageIds { get; set; } = new();
 
         [Display(Name = "Upload Images")]

@@ -263,6 +263,7 @@ namespace WebApp.Controllers
             {
                 return RedirectToAction(nameof(Index));
             }
+
             ModelState.AddModelError("", "Failed to delete product via API.");
             return RedirectToAction(nameof(Delete), new { id });
         }

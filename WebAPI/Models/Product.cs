@@ -13,6 +13,8 @@ public partial class Product
 
     public int CategoryId { get; set; }
 
+    public bool IsDeleted { get; set; }
+
     public virtual Category Category { get; set; } = null!;
 
     public virtual ICollection<CustomerOrder> CustomerOrders { get; set; } = new List<CustomerOrder>();

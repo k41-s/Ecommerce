@@ -31,7 +31,9 @@ namespace WebAPI.Controllers
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
 
-                var product = await _context.Products.FindAsync(dto.ProductId);
+                var product = await _context.Products
+                    .FirstOrDefaultAsync(p => !p.IsDeleted && p.Id == dto.ProductId);
+
                 if (product == null)
                     return NotFound("Product not found");
 
@@ -40,7 +42,7 @@ namespace WebAPI.Controllers
                 _context.CustomerOrders.Add(order);
                 await _context.SaveChangesAsync();
 
-                return Ok("CustomerOrder requested.");
+                return Ok("Order requested.");
             }
             catch (Exception)
             {
@@ -51,27 +53,21 @@ namespace WebAPI.Controllers
         // GET: api/order/user/5
         [HttpGet("user/{userId}")]
         [Authorize(Roles = "User")]
-        public async Task<ActionResult<IEnumerable<OrderDTO>>> GetUserOrder(int userId)
+        public async Task<ActionResult<IEnumerable<OrderDTO>>> GetUserOrders(int userId)
         {
-            var CustomerOrder = await _context.CustomerOrders
+            var orders = await _context.CustomerOrders
                 .Include(c => c.Product)
-                .Include(c => c.User)
+                    .ThenInclude(p => p.ProductImages)
                 .Where(c => c.UserId == userId)
                 .OrderByDescending(c => c.OrderedAt)
-                .Select(c => new OrderDTO
-                {
-                    Id = c.Id,
-                    ProductId = c.ProductId,
-                    ProductName = $"{c.Product.Name}",
-                    UserId = c.UserId,
-                    UserName = $"{c.User.Name} {c.User.Surname}",
-                    OrderedAt = c.OrderedAt,
-                    PaymentMethod = c.PaymentMethod,
-                    Notes = c.Notes
-                })
                 .ToListAsync();
 
-            return Ok(CustomerOrder);
+            if (!orders.Any())
+                return NotFound();
+
+            var orderDTOs = _mapper.Map<List<OrderDTO>>(orders);
+
+            return Ok(orderDTOs);
         }
 
         // GET: api/order/admin

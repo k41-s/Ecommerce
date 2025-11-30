@@ -38,9 +38,8 @@ namespace WebAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProductDTO>>> GetProducts()
         {
-            // ProjectTo() ensures EF Core SELECTS only the Image IDs and explicitly 
-            // IGNORES the heavy 'Data' (byte[]) column from the database.
             var productDTOs = await _context.Products
+                .Where(p => !p.IsDeleted)
                 .AsNoTracking()
                 .ProjectTo<ProductDTO>(_mapper.ConfigurationProvider)
                 .ToListAsync();
@@ -120,8 +119,9 @@ namespace WebAPI.Controllers
             if (id <= 0)
                 return BadRequest("Invalid product id");
             
-            // Note: We do NOT Include ProductImages here becuase theyre updated in their own controller
+            // We do NOT Include ProductImages here becuase theyre updated in their own controller
             Product? product = await _context.Products
+                .Where(p => !p.IsDeleted)
                 .Include(p => p.Countries)
                 .Include(p=> p.Category)
                 .FirstOrDefaultAsync(p=> p.Id == id);
@@ -186,30 +186,31 @@ namespace WebAPI.Controllers
         public async Task<IActionResult> DeleteProduct(int id)
         {
             var product = await _context.Products
-                .Include(p => p.Countries)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (product == null)
             {
-                await AddLogAsync("Warning", $"Product with id={id} not found for deletion.");
+                await AddLogAsync("Warning", $"Product with id={id} not found.");
                 return NotFound();
             }
 
+            if(product.IsDeleted)
+            {
+                return NoContent();
+            }
+
+            product.IsDeleted = true;
+
             try
             {
-                // remove foreign keys first
-                product.Countries.Clear();
-
-                _context.Products.Remove(product);
                 await _context.SaveChangesAsync();
-
-                await AddLogAsync("Information", $"Product with id={id} deleted.");
+                await AddLogAsync("Information", $"Product with id={id} marked as deleted");
                 return NoContent();
             }
             catch (Exception ex)
             {
-                await AddLogAsync("Error", $"Error deleting product");
-                return StatusCode(500, $"An unexpected error occurred: {ex.Message}");
+                await AddLogAsync("Error", $"Error deleting product id={id}: {ex.Message}");
+                return StatusCode(500, "Delete failed.");
             }
         }
 
@@ -226,10 +227,13 @@ namespace WebAPI.Controllers
                 if (page <= 0) page = 1;
                 if (pageSize <= 0) pageSize = 10;
 
-                if (_context.Products == null)
+                var products = _context.Products
+                    .Where(p => !p.IsDeleted);
+
+                if (products == null)
                     return NotFound("Product dataset not found.");
 
-                var productsQuery = _context.Products
+                var productsQuery = products
                     .AsNoTracking()
                     .AsQueryable();
 

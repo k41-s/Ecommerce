@@ -81,7 +81,6 @@ namespace WebApp.Controllers
             ViewData["CurrentPage"] = page;
             ViewData["TotalPages"] = totalPages;
 
-            // Get Category dropdown
             var categoryResponse = await client.GetAsync("api/category");
             if (categoryResponse.IsSuccessStatusCode)
             {
@@ -221,29 +220,11 @@ namespace WebApp.Controllers
             if (user == null)
                 return Unauthorized();
 
-            // Check if already placed
-            var response = await client.GetAsync($"api/order/user/{user.Id}");
-            if (response.IsSuccessStatusCode)
-            {
-                var orders = await response.Content.ReadFromJsonAsync<List<OrderDTO>>();
-                if (orders?.Any(c => c.ProductId == model.ProductId) == true)
-                {
-                    ModelState.AddModelError("", "You have already placed an order with this product.");
-                    return View(model);
-                }
-            }
-
             // Prepare DTO
-            var orderDto = new OrderDTO
-            {
-                UserId = user.Id,
-                UserName = user.Name,
-                ProductId = model.ProductId,
-                ProductName = model.ProductName,
-                Notes = model.Notes ?? "",
-                OrderedAt = DateTime.UtcNow,
-                PaymentMethod = model.PaymentMethod
-            };
+            var orderDto = _mapper.Map<OrderDTO>(model);
+            orderDto.UserId = user.Id;
+            orderDto.UserName = user.Name;
+            orderDto.OrderedAt = DateTime.UtcNow;
 
             var postResponse = await client.PostAsJsonAsync("api/order/create", orderDto);
 

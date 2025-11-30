@@ -17,5 +17,6 @@
         public string? Notes { get; set; }
         public string ProductName { get; set; } = string.Empty;
         public string PaymentMethod { get; set; } = string.Empty;
+        public bool IsProductDeleted { get; set; }
     }
 }

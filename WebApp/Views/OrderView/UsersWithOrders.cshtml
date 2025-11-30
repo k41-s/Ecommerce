@@ -42,13 +42,32 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var c in vm.CustomerOrders)
+                            @foreach (var o in vm.CustomerOrders)
                             {
-                                <tr>
-                                    <td>@c.ProductName</td>
-                                    <td>@c.PaymentMethod</td>
-                                    <td>@c.OrderedAt.ToString("g")</td>
-                                    <td>@c.Notes</td>
+                                var rowClass = o.IsProductDeleted ? "table-danger" : "";
+
+                                <tr class="@rowClass">
+                                    <td>
+                                        @o.ProductName
+
+                                        @if (o.IsProductDeleted)
+                                        {
+                                            <span class="badge bg-danger ms-2">DELETED</span>
+                                        }
+                                    </td>
+                                    <td>@o.PaymentMethod</td>
+                                    <td>@o.OrderedAt.ToString("g")</td>
+                                    <td>@o.Notes</td>
+                                    <td>
+                                        @if (o.IsProductDeleted)
+                                        {
+                                            <span class="text-danger">Archived</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-success">Active</span>
+                                        }
+                                    </td>
                                 </tr>
                             }
                         </tbody>

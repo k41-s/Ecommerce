@@ -55,13 +55,13 @@ else
 
     @if (!(ViewData["HasOrdered"] as bool? ?? false))
     {
-        <a asp-action="PlaceOrder" asp-route-id="@Model.Id" class="btn btn-success">Place CustomerOrder</a>
+        <a asp-action="PlaceOrder" asp-route-id="@Model.Id" class="btn btn-success">Place Order</a>
     }
     else
     {
         <h3 class="alert-heading">
             You have already ordered this, are you sure you want to place another order?
         </h3>
-        <a asp-action="PlaceOrder" asp-route-id="@Model.Id" class="btn btn-success">Place CustomerOrder</a>
+        <a asp-action="PlaceOrder" asp-route-id="@Model.Id" class="btn btn-success">Place Order</a>
     }
 </div>

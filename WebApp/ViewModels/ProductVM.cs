@@ -15,6 +15,10 @@ namespace WebApp.ViewModels
         [Display(Name = "Description")]
         public string Description { get; set; }
 
+        [Required(ErrorMessage = "Price is required.")]
+        [Display(Name = "Price")]
+        public decimal Price { get; set; }
+
         [Required(ErrorMessage = "Category is required.")]
         [Display(Name = "Category")]
         public int CategoryId { get; set; }

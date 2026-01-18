@@ -75,24 +75,29 @@ namespace WebAPI.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult<IEnumerable<OrderDTO>>> GetAllOrder()
         {
-            var CustomerOrder = await _context.CustomerOrders
+            var orders = await _context.CustomerOrders
                 .Include(c => c.Product)
+                    .ThenInclude(p => p.ProductImages)
                 .Include(c => c.User)
                 .OrderByDescending(c => c.OrderedAt)
-                .Select(c => new OrderDTO
+                .Select(o => new OrderDTO
                 {
-                    Id = c.Id,
-                    ProductId = c.ProductId,
-                    ProductName = $"{c.Product.Name}",
-                    UserId = c.UserId,
-                    UserName = $"{c.User.Name} {c.User.Surname}",
-                    OrderedAt = c.OrderedAt,
-                    PaymentMethod = c.PaymentMethod,
-                    Notes = c.Notes
+                    Id = o.Id,
+                    ProductId = o.ProductId,
+                    ProductName = $"{o.Product.Name}",
+                    IsProductDeleted = o.Product.IsDeleted,
+                    UserId = o.UserId,
+                    UserName = $"{o.User.Name} {o.User.Surname}",
+                    OrderedAt = o.OrderedAt,
+                    PaymentMethod = o.PaymentMethod,
+                    Notes = o.Notes,
+                    MainImageId = o.Product.ProductImages != null && o.Product.ProductImages.Any()
+                        ? o.Product.ProductImages.First().Id
+                        : (int?)null
                 })
                 .ToListAsync();
 
-            return Ok(CustomerOrder);
+            return Ok(orders);
         }
     }
 }

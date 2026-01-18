@@ -4,7 +4,7 @@
     {
         public int Id { get; set; }
         public int ProductId { get; set; }
-        public int MainImageId { get; set; }
+        public int? MainImageId { get; set; }
         public string ProductName { get; set; } = null!;
         public int UserId { get; set; }
         public string UserName { get; set; } = null!;
